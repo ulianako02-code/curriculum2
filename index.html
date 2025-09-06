@@ -45,6 +45,37 @@
             opacity: 0.9;
         }
         
+        .week-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(135deg, #8b0000 0%, #6d0000 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .week-range {
+            font-weight: bold;
+            color: #8b0000;
+        }
+        
         .week-calendar {
             display: flex;
             justify-content: space-between;
@@ -344,6 +375,12 @@
             <div class="date-display" id="currentDate"></div>
         </header>
         
+        <div class="week-navigation">
+            <button class="nav-btn" id="prevWeekBtn">←</button>
+            <div class="week-range" id="weekRange"></div>
+            <button class="nav-btn" id="nextWeekBtn">→</button>
+        </div>
+        
         <div class="week-calendar" id="weekCalendar">
             <!-- Календарь на неделю -->
         </div>
@@ -390,6 +427,7 @@
         // Глобальные переменные
         let scheduleData = null;
         let lastFetchTime = null;
+        let currentWeekOffset = 0; // 0 - текущая неделя, 1 - следующая, -1 - предыдущая
 
         // Основные функции приложения
         document.addEventListener('DOMContentLoaded', function() {
@@ -432,25 +470,49 @@
             const calendar = document.getElementById('weekCalendar');
             calendar.innerHTML = '';
             
-            const today = new Date();
-            const currentDate = today.getDate();
-            const currentDay = today.getDay();
+            // Получаем дату понедельника для текущей недели с учетом смещения
+            const monday = getMondayForWeekOffset(currentWeekOffset);
             
-            // Находим понедельник текущей недели
-            const monday = new Date(today);
-            monday.setDate(monday.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
+            // Обновляем отображение диапазона недели
+            updateWeekRangeDisplay(monday);
             
             // Создаем дни недели
             for (let i = 0; i < 7; i++) {
                 const dayDate = new Date(monday);
                 dayDate.setDate(monday.getDate() + i);
                 
-                const dayElement = createDayElement(dayDate, currentDate);
+                const dayElement = createDayElement(dayDate);
                 calendar.appendChild(dayElement);
             }
         }
 
-        function createDayElement(date, currentDate) {
+        function getMondayForWeekOffset(weekOffset) {
+            const today = new Date();
+            const currentDay = today.getDay();
+            const currentDate = today.getDate();
+            
+            // Находим понедельник текущей недели
+            const monday = new Date(today);
+            monday.setDate(currentDate - currentDay + (currentDay === 0 ? -6 : 1));
+            
+            // Применяем смещение недели
+            monday.setDate(monday.getDate() + (weekOffset * 7));
+            
+            return monday;
+        }
+
+        function updateWeekRangeDisplay(monday) {
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const options = { day: 'numeric', month: 'long' };
+            const mondayStr = monday.toLocaleDateString('ru-RU', options);
+            const sundayStr = sunday.toLocaleDateString('ru-RU', options);
+            
+            document.getElementById('weekRange').textContent = `${mondayStr} - ${sundayStr}`;
+        }
+
+        function createDayElement(date) {
             const day = document.createElement('div');
             day.className = 'day';
             
@@ -458,10 +520,18 @@
             const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
             const dayName = dayNames[date.getDay()];
             
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const currentDate = today.getDate();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            
             // Определяем класс для стилизации
-            if (dayNumber === currentDate) {
+            if (date.getDate() === currentDate && 
+                date.getMonth() === currentMonth && 
+                date.getFullYear() === currentYear) {
                 day.classList.add('current-day');
-            } else if (dayNumber < currentDate) {
+            } else if (date < today) {
                 day.classList.add('past-day');
             } else {
                 day.classList.add('future-day');
@@ -490,6 +560,7 @@
                     await fetchScheduleData();
                 }
                 
+                // Показываем расписание для сегодняшнего дня
                 displayScheduleForDate(new Date());
                 
             } catch (error) {
@@ -618,9 +689,10 @@
             
             // Добавляем выделение выбранной дате
             const dayNumber = date.getDate();
-            document.querySelectorAll('.day-number').forEach(el => {
-                if (parseInt(el.textContent) === dayNumber) {
-                    el.parentElement.classList.add('current-day');
+            document.querySelectorAll('.day').forEach(dayEl => {
+                const elDayNumber = parseInt(dayEl.querySelector('.day-number').textContent);
+                if (elDayNumber === dayNumber) {
+                    dayEl.classList.add('current-day');
                 }
             });
             
@@ -658,6 +730,17 @@
                 scheduleData = null;
                 lastFetchTime = null;
                 await loadSchedule();
+            });
+            
+            // Обработчики для навигации по неделям
+            document.getElementById('prevWeekBtn').addEventListener('click', () => {
+                currentWeekOffset--;
+                renderWeekCalendar();
+            });
+            
+            document.getElementById('nextWeekBtn').addEventListener('click', () => {
+                currentWeekOffset++;
+                renderWeekCalendar();
             });
         }
     </script>
