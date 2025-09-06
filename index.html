@@ -632,7 +632,7 @@
                         <div class="time">${lesson.ptime || 'Время не указано'}</div>
                         <div class="subject">${lesson.D2 || 'Предмет не указан'}</div>
                         <div class="details teacher">${lesson.prs || 'Преподаватель не указан'}</div>
-                        <div class="details auditorium">${lesson.SectorName ? lesson.SectorName + ', ' : ''}${lesson.A2 || 'Аудитория не указана'}</div>
+                        <div class="details auditorium">${lesson.SectorName ? lesson.SectorName}${lesson.A2 || 'Аудитория не указана'}</div>
                         <div class="details type">${lesson.LessonType || 'Тип не указан'}</div>
                         ${index < daySchedule.length - 1 ? '<div class="divider"></div>' : ''}
                     </div>
