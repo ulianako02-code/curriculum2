@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание - Корочкина Ульяна</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #8b0000 0%, #6d0000 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .date-display {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .week-calendar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 15px;
+            padding: 15px 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .day {
+            text-align: center;
+            flex: 1;
+            padding: 10px 5px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            min-width: 40px;
+        }
+        
+        .day:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .day-number {
+            font-size: 16px;
+            font-weight: bold;
+            height: 36px;
+            width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .day-name {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .current-day .day-number {
+            background: linear-gradient(135deg, #8b0000 0%, #6d0000 100%);
+            color: white;
+            box-shadow: 0 3px 8px rgba(139, 0, 0, 0.3);
+        }
+        
+        .past-day .day-number {
+            color: #aaa;
+            background-color: #f8f9fa;
+        }
+        
+        .future-day .day-number {
+            color: #444;
+            background-color: #f8f9fa;
+        }
+        
+        .schedule-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .schedule-header h2 {
+            color: #8b0000;
+            font-size: 20px;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #8b0000 0%, #6d0000 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+            box-shadow: 0 3px 8px rgba(139, 0, 0, 0.3);
+        }
+        
+        .schedule-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #8b0000;
+        }
+        
+        .schedule-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .time {
+            font-weight: bold;
+            font-size: 18px;
+            color: #8b0000;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .time::before {
+            content: "🕒";
+            margin-right: 8px;
+        }
+        
+        .subject {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .details {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .details::before {
+            content: "📌";
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+        
+        .teacher::before {
+            content: "👤";
+        }
+        
+        .auditorium::before {
+            content: "🏫";
+        }
+        
+        .type::before {
+            content: "📚";
+        }
+        
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #8b0000 50%, transparent 100%);
+            margin: 15px 0;
+            opacity: 0.6;
+        }
+        
+        .no-classes {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .no-classes h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #8b0000;
+        }
+        
+        .no-classes p {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #8b0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 30px 20px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border-radius: 12px;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .settings-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #8b0000 0%, #6d0000 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+            font-size: 20px;
+        }
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 20px;
+            }
+            
+            .date-display {
+                font-size: 14px;
+            }
+            
+            .day {
+                padding: 8px 3px;
+            }
+            
+            .day-number {
+                height: 32px;
+                width: 32px;
+                font-size: 14px;
+            }
+            
+            .day-name {
+                font-size: 11px;
+            }
+            
+            .schedule-header h2 {
+                font-size: 18px;
+            }
+            
+            .schedule-item {
+                padding: 12px;
+            }
+            
+            .time {
+                font-size: 16px;
+            }
+            
+            .subject {
+                font-size: 15px;
+            }
+            
+            .details {
+                font-size: 13px;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .schedule-item {
+            animation: fadeIn 0.4s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Моё расписание</h1>
+            <div class="date-display" id="currentDate"></div>
+        </header>
+        
+        <div class="week-calendar" id="weekCalendar">
+            <!-- Календарь на неделю -->
+        </div>
+        
+        <div class="schedule-container">
+            <div class="schedule-header">
+                <h2 id="scheduleTitle">Расписание на сегодня</h2>
+                <button class="refresh-btn" id="refreshBtn">🔄</button>
+            </div>
+            <div id="scheduleContent">
+                <!-- Расписание будет здесь -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация приложения
+        const CONFIG = {
+            API_URL: 'https://my.econ.msu.ru/Teacher/GetData',
+            REQUEST_HEADERS: {
+                'authority': 'my.econ.msu.ru',
+                'method': 'POST',
+                'accept': '*/*',
+                'accept-language': 'en-US,en;q=0.9',
+                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'origin': 'https://my.econ.msu.ru',
+                'referer': 'https://my.econ.msu.ru/cacs',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+                'x-requested-with': 'XMLHttpRequest',
+                'cookie': '__ddg1_=pLJWVzwrFIwCTqqeEfH8; _ym_uid=1753471215781307183; _ym_d=1753471215; MSU_GUEST_ID=50544595; MSU_LAST_VISIT=02.09.2025+00%3A15%3A54; _ga=GA1.2.46257710.1756761355; _ga_DH1EH9EZR2=GS2.2.s1756761355$o1$g0$t1756761355$j60$l0$h0; __RequestVerificationToken=R7CPcT16CVqb-yo_QMC4-GtLLoumLxrYpkWftY-2ONmPHHpn8ovh-jl7m9kfAvP67NLEhUHA68ZCIQYpo2FN_nA-SwffNfjEaXQaq91rcbY1; _ym_isad=2',
+                '__requestverificationtoken': 'R7CPcT16CVqb-yo_QMC4-GtLLoumLxrYpkWftY-2ONmPHHpn8ovh-jl7m9kfAvP67NLEhUHA68ZCIQYpo2FN_nA-SwffNfjEaXQaq91rcbY1'
+            },
+            REQUEST_BODY: {
+                'page': '1',
+                'limit': '250',
+                'searchrasp[id]': '31561',
+                'searchrasp[label]': 'Корочкина Ульяна Сергеевна',
+                'searchrasp[category]': 'Студенты',
+                'searchrasp[value]': 'Корочкина Ульяна Сергеевна'
+            },
+            CACHE_DURATION: 30 * 60 * 1000 // 30 минут
+        };
+
+        // Глобальные переменные
+        let scheduleData = null;
+        let lastFetchTime = null;
+
+        // Основные функции приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded - initializing app");
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            try {
+                // Устанавливаем текущую дату
+                updateCurrentDate();
+                
+                // Инициализируем календарь
+                renderWeekCalendar();
+                
+                // Загружаем расписание
+                await loadSchedule();
+                
+                // Добавляем обработчики событий
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                showError('Ошибка при загрузке приложения');
+            }
+        }
+
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', options);
+        }
+
+        function renderWeekCalendar() {
+            const calendar = document.getElementById('weekCalendar');
+            calendar.innerHTML = '';
+            
+            const today = new Date();
+            const currentDate = today.getDate();
+            const currentDay = today.getDay();
+            
+            // Находим понедельник текущей недели
+            const monday = new Date(today);
+            monday.setDate(monday.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
+            
+            // Создаем дни недели
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(monday);
+                dayDate.setDate(monday.getDate() + i);
+                
+                const dayElement = createDayElement(dayDate, currentDate);
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function createDayElement(date, currentDate) {
+            const day = document.createElement('div');
+            day.className = 'day';
+            
+            const dayNumber = date.getDate();
+            const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            const dayName = dayNames[date.getDay()];
+            
+            // Определяем класс для стилизации
+            if (dayNumber === currentDate) {
+                day.classList.add('current-day');
+            } else if (dayNumber < currentDate) {
+                day.classList.add('past-day');
+            } else {
+                day.classList.add('future-day');
+            }
+            
+            day.innerHTML = `
+                <div class="day-number">${dayNumber}</div>
+                <div class="day-name">${dayName}</div>
+            `;
+            
+            // Добавляем обработчик клика
+            day.addEventListener('click', () => {
+                selectDate(date);
+            });
+            
+            return day;
+        }
+
+        async function loadSchedule() {
+            try {
+                showLoading();
+                
+                // Проверяем кэш
+                const now = Date.now();
+                if (!scheduleData || !lastFetchTime || (now - lastFetchTime) > CONFIG.CACHE_DURATION) {
+                    await fetchScheduleData();
+                }
+                
+                displayScheduleForDate(new Date());
+                
+            } catch (error) {
+                console.error('Ошибка загрузки расписания:', error);
+                showError('Ошибка при загрузке расписания. Проверьте соединение или попробуйте позже.');
+            }
+        }
+
+        async function fetchScheduleData() {
+            try {
+                const formData = new URLSearchParams();
+                for (const key in CONFIG.REQUEST_BODY) {
+                    formData.append(key, CONFIG.REQUEST_BODY[key]);
+                }
+                
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: CONFIG.REQUEST_HEADERS,
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                scheduleData = await response.json();
+                lastFetchTime = Date.now();
+                
+            } catch (error) {
+                console.error('Ошибка получения данных:', error);
+                
+                // Показываем тестовые данные при ошибке
+                displayTestSchedule();
+                throw error;
+            }
+        }
+
+        function displayScheduleForDate(date) {
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scheduleTitle = document.getElementById('scheduleTitle');
+            
+            if (!scheduleData || !scheduleData.records) {
+                scheduleContent.innerHTML = '<div class="error-message">Данные расписания не получены</div>';
+                return;
+            }
+            
+            const dateStr = date.toLocaleDateString('ru-RU');
+            scheduleTitle.textContent = `Расписание на ${dateStr}`;
+            
+            const daySchedule = scheduleData.records.filter(record => {
+                const recordDate = parseDate(record.r2);
+                return recordDate && recordDate.toDateString() === date.toDateString();
+            });
+            
+            if (daySchedule.length === 0) {
+                scheduleContent.innerHTML = `
+                    <div class="no-classes">
+                        <h3>Занятий нет 🎉</h3>
+                        <p>На ${dateStr} занятий не запланировано</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let scheduleHTML = '';
+            daySchedule.forEach((lesson, index) => {
+                scheduleHTML += `
+                    <div class="schedule-item">
+                        <div class="time">${lesson.ptime || 'Время не указано'}</div>
+                        <div class="subject">${lesson.D2 || 'Предмет не указан'}</div>
+                        <div class="details teacher">${lesson.prs || 'Преподаватель не указан'}</div>
+                        <div class="details auditorium">${lesson.A2 || 'Аудитория не указана'}</div>
+                        <div class="details type">${lesson.LessonType || 'Тип не указан'}</div>
+                        ${index < daySchedule.length - 1 ? '<div class="divider"></div>' : ''}
+                    </div>
+                `;
+            });
+            
+            scheduleContent.innerHTML = scheduleHTML;
+        }
+
+        function displayTestSchedule() {
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scheduleTitle = document.getElementById('scheduleTitle');
+            
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('ru-RU');
+            scheduleTitle.textContent = `Расписание на ${dateStr}`;
+            
+            // Тестовые данные
+            scheduleContent.innerHTML = `
+                <div class="schedule-item">
+                    <div class="time">9:00-10:30</div>
+                    <div class="subject">Эконометрика (продвинутый уровень)</div>
+                    <div class="details teacher">Мирзоян Ашот Гамлетович</div>
+                    <div class="details auditorium">А205</div>
+                    <div class="divider"></div>
+                </div>
+                <div class="schedule-item">
+                    <div class="time">11:00-12:30</div>
+                    <div class="subject">Эмпирический анализ отраслевых рынков</div>
+                    <div class="details teacher">Маркова Ольга Анатольевна, Ионкина Карина Александровна, Морозов Антон Николаевич</div>
+                    <div class="details auditorium">А405</div>
+                </div>
+            `;
+        }
+
+        function parseDate(dateString) {
+            try {
+                if (dateString && dateString.startsWith('/Date(')) {
+                    const timestamp = parseInt(dateString.slice(6, -2));
+                    return new Date(timestamp);
+                }
+                return null;
+            } catch (error) {
+                console.error('Ошибка парсинга даты:', error);
+                return null;
+            }
+        }
+
+        function selectDate(date) {
+            // Обновляем выделение в календаре
+            document.querySelectorAll('.day').forEach(dayEl => {
+                dayEl.classList.remove('current-day');
+            });
+            
+            // Добавляем выделение выбранной дате
+            const dayNumber = date.getDate();
+            document.querySelectorAll('.day-number').forEach(el => {
+                if (parseInt(el.textContent) === dayNumber) {
+                    el.parentElement.classList.add('current-day');
+                }
+            });
+            
+            // Показываем расписание для выбранной даты
+            displayScheduleForDate(date);
+        }
+
+        function showLoading() {
+            document.getElementById('scheduleContent').innerHTML = `
+                <div class="loading">Загрузка расписания</div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('scheduleContent').innerHTML = `
+                <div class="error-message">
+                    <h3>Ошибка</h3>
+                    <p>${message}</p>
+                    <button onclick="location.reload()" style="
+                        background: #8b0000;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        margin-top: 10px;
+                    ">Попробовать снова</button>
+                </div>
+            `;
+        }
+
+        function setupEventListeners() {
+            // Обработчик для кнопки обновления
+            document.getElementById('refreshBtn').addEventListener('click', async () => {
+                scheduleData = null;
+                lastFetchTime = null;
+                await loadSchedule();
+            });
+        }
+    </script>
+</body>
+</html>
